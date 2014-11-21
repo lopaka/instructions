@@ -14,7 +14,7 @@ After initial install, the following devices are setup:
 /     = /dev/mmcblk0p2
 ```
 
-WIFI does not work out of the box. I had [this USB WIFI adapter](http://www.newegg.com/Product/Product.aspx?Item=N82E16833315091) lying around and it worked perfectly.
+WIFI does not work out of the box. I had [this USB WIFI adapter](http://www.newegg.com/Product/Product.aspx?Item=N82E16833315091) laying around and it worked perfectly.
 
 
 ## Create bootia32.efi
