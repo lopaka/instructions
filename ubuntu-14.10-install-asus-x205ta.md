@@ -6,10 +6,15 @@ Under Security, set 'Secure Boot Control' to Disabled
 Under Advanced, set 'USB Controller Select' to EHCI
 'Save Changes and Exit'
 
-info: /boot = /dev/mmcblk0p1
-      /     = /dev/mmcblk0p2
+## Few notes:
 
-WIFI does not work out of the box - using another usb wifi
+After initial install, the following devices are setup:
+```
+/boot = /dev/mmcblk0p1
+/     = /dev/mmcblk0p2
+```
+
+WIFI does not work out of the box. I had [this USB WIFI adapter](http://www.newegg.com/Product/Product.aspx?Item=N82E16833315091) lying around and it worked perfectly.
 
 
 ## Create bootia32.efi
@@ -38,10 +43,9 @@ cp bootia32.efi /tmp
 ```
 
 ## Prepare the USB flashdrive to be used as the install media
-**THIS WILL DELETE DATE ON /dev/sdb - make sure you know what you are doing!**
+**THIS WILL DELETE DATA ON /dev/sdb - MAKE SURE YOU KNOW WHAT YOU ARE DOING!**
 
-On a freshly installed Ubuntu 14.10 system
-
+On a freshly installed Ubuntu 14.10 system:
 ```bash
 apt-get install p7zip-full
 
