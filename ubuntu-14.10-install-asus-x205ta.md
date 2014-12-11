@@ -1,5 +1,7 @@
 # Instructions to install Ubuntu 14.10 on ASUS EeeBook X205TA
 
+*NOTICE: because of the lack of hardware support on the X205TA at the time of writing this doc, I have returned the device.  The items that were the deal breakers: wireless and sound.*
+
 ## BIOS
 press F2 before boot to get into BIOS.
 Under Security, set 'Secure Boot Control' to Disabled
