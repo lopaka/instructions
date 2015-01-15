@@ -83,6 +83,7 @@ mount -t vfat /dev/sdb1 /mnt
 7z x ubuntu-14.10-desktop-amd64.iso -o/mnt/
 
 # The bootia32.efi file from last section
+mkdir /mnt/EFI/BOOT/
 cp /tmp/bootia32.efi /mnt/EFI/BOOT/
 
 umount /mnt
