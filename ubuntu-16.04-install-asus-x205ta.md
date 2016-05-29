@@ -54,10 +54,10 @@ Remove the USB flash drive.
 * Make sure the X205TA is off
 * Plug in the USB flash drive
 * Start the X205TA and continue to press F2 to get into BIOS.
-* Under 'Advanced' tab, 'USB Configuration' -> 'USB Controller Select' set to 'EHCI' otherwise mouse and keyboard will not work
-* Under 'Security' tab, 'Secure Boot menu' -> 'Secure Boot Control' set to 'Disabled'
-* Under 'Save & Exit' tab, 'Save Changes' (NOT `Save Chances and Exit`)
-* Lastly, while still in 'Save & Exit' tab, under `Boot Override`, select the USB flash drive.
+* Under `Advanced` tab, `USB Configuration` -> `USB Controller Select` set to `EHCI` otherwise mouse and keyboard will not work
+* Under `Security` tab, `Secure Boot menu` -> `Secure Boot Control` set to `Disabled`
+* Under `Save & Exit` tab, `Save Changes` (NOT `Save Chances and Exit`)
+* Lastly, while still in `Save & Exit` tab, under `Boot Override`, select the USB flash drive.
 
 ### Installation
 
