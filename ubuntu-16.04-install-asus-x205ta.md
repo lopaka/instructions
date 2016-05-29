@@ -1,6 +1,6 @@
 # Instructions to install Ubuntu 16.04 LTS on ASUS EeeBook X205TA
 
-*NOTICE: at the time of writing this, the following items hardware items do not work out-of-the-box: wireless and sound. I use a small wireless USB key listed in the instructions, and currenlty not using sound*
+*NOTICE: at the time of writing this, the following hardware items do not work out-of-the-box: wireless and sound. I use a small wireless USB key listed in the instructions, and currently not using sound*
 
 ## Required items
 * Separate system already running Ubuntu 16.04 - this is where you will build the 32bit boot loader and create the USB install flash drive.
@@ -24,7 +24,7 @@ mkfs.vfat -F32 /dev/sdb1
 
 # Copy the ISO file to the USB drive:
 mount -t vfat /dev/sdb1 /mnt
-7z x ubuntu-14.10-desktop-amd64.iso -o/mnt/
+7z x ubuntu-16.04-desktop-amd64.iso -o/mnt/
 
 # Create the 32bit boot loader and place it on USB install media
 apt-get install git bison libopts25 libselinux1-dev autogen \
@@ -49,24 +49,27 @@ Remove the USB flash drive.
 
 ## Installation on X205TA
 
-# BIOS setup
+### BIOS setup
 
 * Make sure the X205TA is off
 * Plug in the USB flash drive
 * Start the X205TA and continue to press F2 to get into BIOS.
-* Under 'Advanced' tab, 'USB Configuration' -> 'USB Controller Select' set to 'EHCI' othewise mouse and keyboard will not work
+* Under 'Advanced' tab, 'USB Configuration' -> 'USB Controller Select' set to 'EHCI' otherwise mouse and keyboard will not work
 * Under 'Security' tab, 'Secure Boot menu' -> 'Secure Boot Control' set to 'Disabled'
 * Under 'Save & Exit' tab, 'Save Changes' (NOT `Save Chances and Exit`)
 * Lastly, while still in 'Save & Exit' tab, under `Boot Override`, select the USB flash drive.
 
-# Installation
+### Installation
 
 Install Ubuntu as usual, but make sure you are connected online to allow packages to be installed by installation.
 *Note: Selecting `Encrypt the new Ubuntu installation for security` will require you to enter a password on boot - the keyboard will not work for this requiring you to use an external USB keyboard. You have been warned.*
 
-# Post-installation
+### Post-installation
 
 * Due to a known system freeze issue, update `/etc/default/grub` by updating the `GRUB_CMDLINE_LINUX_DEFAULT` line to:
-```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_idle.max_cstate=1"
-```
+
+  ```
+  GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_idle.max_cstate=1"
+  ```
+
+  Then run `update-grub`.
