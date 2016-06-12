@@ -1,10 +1,9 @@
 # Instructions to install Ubuntu 16.04 LTS on ASUS EeeBook X205TA
 
-*NOTICE: at the time of writing this, the following hardware items do not work out-of-the-box: wireless and sound. I use a small wireless USB key listed in the instructions, and currently not using sound*
+*NOTICE: at the time of writing this, bluetooth, sound, and mic does not work.*
 
 ## Required items
 * Separate system already running Ubuntu 16.04 - this is where you will build the 32bit boot loader and create the USB install flash drive.
-* USB Wi-Fi or wire network adapter - the install will grab the grub-efi-ia32-bin package and needs to be online to do so, otherwise the install will fail. The internal Wi-Fi adapter does not work out-of-the-box. I used [this USB WIFI adapter](http://www.newegg.com/Product/Product.aspx?Item=N82E16833315091) laying around and it worked perfectly.
 * Bootable USB flash drive at least 2GB - ALL DATA WILL BE REMOVED FROM THIS DRIVE!
 
 ## Prepare the USB flashdrive to be used as the install media
@@ -61,7 +60,19 @@ Remove the USB flash drive.
 
 ### Installation
 
-Install Ubuntu as usual, but make sure you are connected online to allow packages to be installed by installation.
+1. At the grub menu, select "Try Ubuntu without installing" (misleading because you will be installing). This is needed to get a shell to setup the wireless device. Network access is required for installation to remotely obtain the `grub-efi-ia32-bin` package.  Without this package, install will fail.
+2. Once the desktop loads, press "ctrl+alt+t" to get a terminal window.
+3. Type the following to setup the wireless network device:
+
+   ```bash
+   sudo cp /sys/firmware/efi/efivars/nvram-74b00bd9-805a-4d61-b51f-43268123d113 /lib/firmware/brcm/brcmfmac43340-sdio.txt
+   sudo modprobe -v -r brcmfmac
+   sudo modprobe -v brcmfmac
+   ```
+
+4. The wireless network device should now be working. Press alt+F10 (or click on the wireless/network icon on the indicator panel) to configure using your wireless network setup.
+5. Double click on the Desktop icon labeled "Install Ubuntu 16.04 LTS" to start the installation process and install as usual.
+
 *Note: Selecting `Encrypt the new Ubuntu installation for security` will require you to enter a password on boot - the keyboard will not work for this requiring you to use an external USB keyboard. You have been warned.*
 
 ### Post-installation
@@ -73,3 +84,12 @@ Install Ubuntu as usual, but make sure you are connected online to allow package
   ```
 
   Then run `update-grub`.
+* We will need to copy a file as we did during installation to get wifi working:
+
+  ```bash
+  sudo cp /sys/firmware/efi/efivars/nvram-74b00bd9-805a-4d61-b51f-43268123d113 /lib/firmware/brcm/brcmfmac43340-sdio.txt
+  sudo modprobe -v -r brcmfmac
+  sudo modprobe -v brcmfmac
+  ```
+
+  Then configure your wireless settings.
