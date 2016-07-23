@@ -1,6 +1,6 @@
 # Instructions to install Ubuntu 16.04 LTS on ASUS EeeBook X205TA
 
-*NOTICE: at the time of writing this, bluetooth, sound, and mic does not work.*
+*NOTICE: at the time of writing this, bluetooth, sound, and mic does not work.* See [Linux kernel Bug 95681 - No sound on Asus EeeBook X205TA](https://bugzilla.kernel.org/show_bug.cgi?id=95681)
 
 ## Required items
 * Separate system already running Ubuntu 16.04 - this is where you will build the 32bit boot loader and create the USB install flash drive.
