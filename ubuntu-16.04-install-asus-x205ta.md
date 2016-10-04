@@ -93,3 +93,12 @@ Remove the USB flash drive.
   ```
 
   Then configure your wireless settings.
+
+* Stop login freezes caused by generic bluetooth driver btsdio:  
+
+  Many have reported a high frequency of system freezes at the login screen. It was found that if one were to blacklist the btsdio generic bluetooth driver, the login freezes stop.  
+
+1. open /etc/modprobe.d/blacklist.conf
+2. insert 'blacklist btsdio' and close file.  
+
+  Subsequent login instances should no longer freeze.
