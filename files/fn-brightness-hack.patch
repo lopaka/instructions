@@ -1,0 +1,41 @@
+#Thanks a lot to user jazmatjaz on ubuntuforums
+#who found https://patchwork.kernel.org/patch/9073081/
+#(see post: https://ubuntuforums.org/showthread.php?t=2254322&p=13603771#post13603771)
+#
+#This is a temporary fix.
+diff --git a/drivers/hid/hid-asus.c b/drivers/hid/hid-asus.c
+index 7a811ec..a71f90c 100644
+--- a/drivers/hid/hid-asus.c
++++ b/drivers/hid/hid-asus.c
+@@ -38,6 +38,9 @@
+ MODULE_AUTHOR("Frederik Wenigwieser <frederik.wenigwieser@gmail.com>");
+ MODULE_DESCRIPTION("Asus HID Keyboard and TouchPad");
+ 
++#define HID_UP_ASUSVENDOR    0xff310000
++#define asus_map_key_clear(c)    hid_map_usage_clear(hi, usage, bit, max, EV_KEY, (c))
++
+ #define FEATURE_REPORT_ID 0x0d
+ #define INPUT_REPORT_ID 0x5d
+ 
+@@ -213,7 +216,20 @@
+ 		return -1;
+ 	}
+ 
+-	return 0;
++    if ((usage->hid & HID_USAGE_PAGE) != HID_UP_ASUSVENDOR)
++        return 0;
++
++    switch (usage->hid & HID_USAGE) {
++    case 0x10: asus_map_key_clear(KEY_BRIGHTNESSDOWN);    break;
++    case 0x20: asus_map_key_clear(KEY_BRIGHTNESSUP);    break;
++    case 0x35: asus_map_key_clear(KEY_DISPLAY_OFF);        break;
++    case 0x6b: asus_map_key_clear(KEY_TOUCHPAD_TOGGLE);    break;
++    case 0x6c: asus_map_key_clear(KEY_SLEEP);        break;
++    case 0x88: asus_map_key_clear(KEY_RFKILL);        break;
++    default:
++        return 0;
++    }
++    return 1;
+ }
+ 
+ static int asus_start_multitouch(struct hid_device *hdev)

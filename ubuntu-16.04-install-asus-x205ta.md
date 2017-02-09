@@ -1,6 +1,6 @@
 # Instructions to install Ubuntu 16.04 LTS on ASUS EeeBook X205TA
 
-*NOTICE: at the time of writing this, bluetooth, sound, and mic does not work.* See [Linux kernel Bug 95681 - No sound on Asus EeeBook X205TA](https://bugzilla.kernel.org/show_bug.cgi?id=95681)
+*NOTICE: at the time of writing this, bluetooth does not work.*
 
 ## Required items
 * Separate system already running Ubuntu 16.04 - this is where you will build the 32bit boot loader and create the USB install flash drive.
@@ -122,12 +122,14 @@ cd sound
 
 # Obtain the kernel config already done - otherwise you will have to run
 # 'make localmodconfig', 'make menuconfig', and answer questions.
+# Originally from ftp://x205ta.myftp.org:1337/kernel/.config
 wget --backups=10 ftp://x205ta.myftp.org:1337/kernel/.config
 
 # reverse patch the commit that causes the keyboard to malfunction
 git diff 3ae02c1^ 3ae02c1 | patch -Rp1
 
 # Add patch that attempts to fix non-functioning FN-keys
+# Originally from https://raw.githubusercontent.com/harryharryharry/x205ta-patches/master/fn-brightness-hack.patch
 wget https://raw.githubusercontent.com/harryharryharry/x205ta-patches/master/fn-brightness-hack.patch
 patch -p1 < fn-brightness-hack.patch
 
@@ -148,6 +150,9 @@ update-initramfs -c -k $KERNELRELEASE
 update-grub
 
 # Obtain HiFi.conf and install it at /usr/share/alsa/ucm/chtrt5645/
+# Original files from:
+# https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/HiFi.conf
+# https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/chtrt5645.conf
 mkdir -p /usr/share/alsa/ucm/chtrt5645
 wget https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/HiFi.conf -O /usr/share/alsa/ucm/chtrt5645/HiFi.conf
 wget https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/chtrt5645.conf -O /usr/share/alsa/ucm/chtrt5645/chtrt5645.conf
