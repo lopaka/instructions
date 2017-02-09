@@ -123,7 +123,7 @@ cd sound
 # Obtain the kernel config already done - otherwise you will have to run
 # 'make localmodconfig', 'make menuconfig', and answer questions.
 # Originally from ftp://x205ta.myftp.org:1337/kernel/.config
-wget --backups=10 https://raw.githubusercontent.com/lopaka/instructions/master/files .config
+wget --backups=10 https://raw.githubusercontent.com/lopaka/instructions/master/files/.config
 
 # reverse patch the commit that causes the keyboard to malfunction
 git diff 3ae02c1^ 3ae02c1 | patch -Rp1
