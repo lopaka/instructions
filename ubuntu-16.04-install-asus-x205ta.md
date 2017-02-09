@@ -11,7 +11,7 @@
 
 On a separate system already running Ubuntu 16.04 and powered on, plug in the USB flash drive. Run the following to setup the install media:
 ```bash
-apt-get install p7zip-full
+apt -y install p7zip-full
 
 wget http://releases.ubuntu.com/16.04/ubuntu-16.04-desktop-amd64.iso
 
@@ -26,7 +26,7 @@ mount -t vfat /dev/sdb1 /mnt
 7z x ubuntu-16.04-desktop-amd64.iso -o/mnt/
 
 # Create the 32bit boot loader and place it on USB install media
-apt-get install git bison libopts25 libselinux1-dev autogen \
+apt -y install git bison libopts25 libselinux1-dev autogen \
   m4 autoconf help2man libopts25-dev flex libfont-freetype-perl \
   automake autotools-dev libfreetype6-dev texinfo
 git clone git://git.savannah.gnu.org/grub.git
@@ -104,3 +104,57 @@ Remove the USB flash drive.
   ```
 
   Subsequent login instances should no longer freeze.
+
+## *EXPERIMENTAL* Kernel changes for audio support
+
+The section was created thanks to the great work done by those on [UbuntuForums](https://ubuntuforums.org/showthread.php?t=2254322&page=126&p=13592053#post13592053).
+
+The following steps must be done on the x205ta after installation to provide *experimental* audio support:
+
+```bash
+# Required lib and packages not installed by default
+apt -y install git
+apt -y install libssl-dev
+
+# Retrieve the Linux kernel source tree fork - will take some time
+git clone https://github.com/plbossart/sound.git -b experimental/codecs
+cd sound
+
+# Obtain the kernel config already done - otherwise you will have to run
+# 'make localmodconfig', 'make menuconfig', and answer questions.
+wget --backups=10 ftp://x205ta.myftp.org:1337/kernel/.config
+
+# reverse patch the commit that causes the keyboard to malfunction
+git diff 3ae02c1^ 3ae02c1 | patch -Rp1
+
+# Add patch that attempts to fix non-functioning FN-keys
+wget https://raw.githubusercontent.com/harryharryharry/x205ta-patches/master/fn-brightness-hack.patch
+patch -p1 < fn-brightness-hack.patch
+
+# Build - will take some time
+make -j6
+
+# Install modules
+make modules_install
+
+# Install kernel to the boot dir
+export KERNELRELEASE=$(<include/config/kernel.release)
+cp -va arch/x86/boot/bzImage /boot/vmlinuz-$KERNELRELEASE
+
+# Build initramfs
+update-initramfs -c -k $KERNELRELEASE
+
+# Rebuild /boot/grub/grub.cfg
+update-grub
+
+# Obtain HiFi.conf and install it at /usr/share/alsa/ucm/chtrt5645/
+mkdir -p /usr/share/alsa/ucm/chtrt5645
+wget https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/HiFi.conf -O /usr/share/alsa/ucm/chtrt5645/HiFi.conf
+wget https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/chtrt5645.conf -O /usr/share/alsa/ucm/chtrt5645/chtrt5645.conf
+
+# Install audio packages
+apt -y install pulseaudio alsa-base alsa-utils pavucontrol
+
+# Reboot and use GUI to set default output - Sound Settings...
+shutdown -r now
+```
