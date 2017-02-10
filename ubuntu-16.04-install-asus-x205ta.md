@@ -124,7 +124,7 @@ cd sound
 # 'make localmodconfig', 'make menuconfig', and answer questions.
 # Original file from:
 #   ftp://x205ta.myftp.org:1337/kernel/.config
-wget --backups=10 http://lopaka.github.io/files/instructions/.config
+wget http://lopaka.github.io/files/instructions/x205ta.config -O .config
 
 # reverse patch the commit that causes the keyboard to malfunction
 git diff 3ae02c1^ 3ae02c1 | patch -Rp1
