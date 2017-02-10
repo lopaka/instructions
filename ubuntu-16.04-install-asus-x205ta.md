@@ -122,15 +122,17 @@ cd sound
 
 # Obtain the kernel config already done - otherwise you will have to run
 # 'make localmodconfig', 'make menuconfig', and answer questions.
-# Originally from ftp://x205ta.myftp.org:1337/kernel/.config
-wget --backups=10 https://raw.githubusercontent.com/lopaka/instructions/master/files/.config
+# Original file from:
+#   ftp://x205ta.myftp.org:1337/kernel/.config
+wget --backups=10 http://lopaka.github.io/files/instructions/.config
 
 # reverse patch the commit that causes the keyboard to malfunction
 git diff 3ae02c1^ 3ae02c1 | patch -Rp1
 
 # Add patch that attempts to fix non-functioning FN-keys
-# Originally from https://raw.githubusercontent.com/harryharryharry/x205ta-patches/master/fn-brightness-hack.patch
-wget https://raw.githubusercontent.com/lopaka/instructions/master/files/fn-brightness-hack.patch
+# Original file from:
+#   https://raw.githubusercontent.com/harryharryharry/x205ta-patches/master/fn-brightness-hack.patch
+wget http://lopaka.github.io/files/instructions/fn-brightness-hack.patch
 patch -p1 < fn-brightness-hack.patch
 
 # Build - will take some time
@@ -151,11 +153,11 @@ update-grub
 
 # Obtain HiFi.conf and install it at /usr/share/alsa/ucm/chtrt5645/
 # Original files from:
-# https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/HiFi.conf
-# https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/chtrt5645.conf
+#   https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/HiFi.conf
+#   https://raw.githubusercontent.com/plbossart/UCM/master/chtrt5645/chtrt5645.conf
 mkdir -p /usr/share/alsa/ucm/chtrt5645
-wget https://raw.githubusercontent.com/lopaka/instructions/master/files/HiFi.conf -O /usr/share/alsa/ucm/chtrt5645/HiFi.conf
-wget https://raw.githubusercontent.com/lopaka/instructions/master/files/chtrt5645.conf -O /usr/share/alsa/ucm/chtrt5645/chtrt5645.conf
+wget http://lopaka.github.io/files/instructions/HiFi.conf -O /usr/share/alsa/ucm/chtrt5645/HiFi.conf
+wget http://lopaka.github.io/files/instructions/chtrt5645.conf -O /usr/share/alsa/ucm/chtrt5645/chtrt5645.conf
 
 # Install audio packages
 apt -y install pulseaudio alsa-base alsa-utils pavucontrol
