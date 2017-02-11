@@ -105,6 +105,40 @@ Remove the USB flash drive.
 
   Subsequent login instances should no longer freeze.
 
+## Bluetooth setup
+
+The firmware for the bluetooth hardware needs to be installed and the service started in order to function. The file needed for this is [BCM43341B0.hcd](http://lopaka.github.io/files/instructions/BCM43341B0.hcd)
+
+###Quick note on how firmware file was obtained:
+1. From https://software.intel.com/en-us/iot/hardware/edison/downloads click on **Latest Yocto* Poky image** to download a file similar to `iot-devkit-prof-dev-image-edison-20160606-patch.zip`
+2. Unzip the file and you will find a file called `edison-image-edison.ext4`
+3. Mount this file: `mount edison-image-edison.ext4 /mnt`
+4. The file `/mnt/etc/firmware/bcm43341.hcd` is what we are looking for to be renamed `BCM43341B0.hcd`
+
+###Steps to setup bluetooth
+
+```bash
+# Download firmware file and install it
+wget http://lopaka.github.io/files/instructions/BCM43341B0.hcd -O /lib/firmware/brcm/BCM43341B0.hcd
+
+# Create systemd service file
+cat >/etc/systemd/system/btattach.service <<EOL
+[Unit]
+Description=Btattach
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/btattach --bredr /dev/ttyS1 -P bcm
+ExecStop=/usr/bin/killall btattach
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Enable service
+systemctl enable btattach
+```
+
 ## *EXPERIMENTAL* Kernel changes for audio support
 
 The section was created thanks to the great work done by those on [UbuntuForums](https://ubuntuforums.org/showthread.php?t=2254322&page=126&p=13592053#post13592053).
