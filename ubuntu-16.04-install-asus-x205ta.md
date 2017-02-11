@@ -52,9 +52,9 @@ Remove the USB flash drive.
 
 * Make sure the X205TA is off
 * Plug in the USB flash drive
-* Start the X205TA and continue to press F2 to get into BIOS.
+* Start the X205TA and continue to press `F2` to get into BIOS.
 * Under `Advanced` tab, `USB Configuration` -> `USB Controller Select` set to `EHCI` otherwise mouse and keyboard will not work
-* Under `Security` tab, `Secure Boot menu` -> `Secure Boot Control` set to `Disabled`
+* Under `Security` tab, `Secure Boot menu` -> `Secure Boot Control` set to `Disabled`. Otherwise, you may get a **SECURE BOOT VIOLATION** on boot. This is due to the factory defaut keys not working for Ubuntu's EFI bootloader. Instead of disabling `Secure Boot Control`, you can 1) `Key Management` -> `Delete All Secure Boot Variables` or 2) `Key Management` and manually load all of the variables.  Disabling `Secure Boot Control` was easier. [More information on SecureBoot and Ubuntu](http://web.dodds.net/~vorlon/wiki/blog/SecureBoot_in_Ubuntu_12.10/)
 * Under `Save & Exit` tab, `Save Changes` (NOT `Save Chances and Exit`)
 * Lastly, while still in `Save & Exit` tab, under `Boot Override`, select the USB flash drive.
 
