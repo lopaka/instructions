@@ -13,7 +13,7 @@ On a separate system already running Ubuntu 16.04 and powered on, plug in the US
 ```bash
 apt -y install p7zip-full
 
-wget http://releases.ubuntu.com/16.04/ubuntu-16.04-desktop-amd64.iso
+wget http://releases.ubuntu.com/16.04.2/ubuntu-16.04.2-desktop-amd64.iso
 
 # Assuming USB flashdrive assigned to /dev/sdb
 # THIS WILL DELETE ALL DATA ON /dev/sdb - make sure you know what you are doing!
@@ -23,7 +23,7 @@ mkfs.vfat -F32 /dev/sdb1
 
 # Copy the ISO file to the USB drive:
 mount -t vfat /dev/sdb1 /mnt
-7z x ubuntu-16.04-desktop-amd64.iso -o/mnt/
+7z x ubuntu-16.04.2-desktop-amd64.iso -o/mnt/
 
 # Create the 32bit boot loader and place it on USB install media
 apt -y install git bison libopts25 libselinux1-dev autogen \
