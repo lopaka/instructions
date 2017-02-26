@@ -1,6 +1,6 @@
 # Instructions to install Ubuntu 16.04 LTS on ASUS EeeBook X205TA
 
-*NOTICE: at the time of writing this, bluetooth does not work.*
+**_ALERT: 16.04.2 installs linux kernel 4.8.0 which breaks a few things like the keyboard. Currently working on a fix_**
 
 ## Required items
 * Separate system already running Ubuntu 16.04 - this is where you will build the 32bit boot loader and create the USB install flash drive.
