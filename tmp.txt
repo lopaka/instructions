@@ -1,0 +1,11 @@
+apt -y install build-essential libncurses-dev libssl-dev
+
+# will take some time
+git clone https://github.com/torvalds/linux.git
+git checkout v4.10
+
+# create .config file
+make menuconfig -> Save -> '.config' -> Exit
+
+# -j4 for quad core
+make -j4
