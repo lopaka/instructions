@@ -1,11 +1,121 @@
+# -------- build 32bit boot loader
+mkdir ~/boot32
+cd ~/boot32
+apt -y install git bison libopts25 libselinux1-dev autogen \
+  m4 autoconf help2man libopts25-dev flex libfont-freetype-perl \
+  automake autotools-dev libfreetype6-dev texinfo
+git clone git://git.savannah.gnu.org/grub.git
+cd grub
+./autogen.sh
+./configure --with-platform=efi --target=i386 --program-prefix=''
+make
+cd grub-core
+../grub-mkimage -d . -o bootia32.efi -O i386-efi -p /boot/grub \
+  ntfs hfs appleldr boot cat efi_gop efi_uga elf fat hfsplus iso9660 linux keylayouts \
+  memdisk minicmd part_apple ext2 extcmd xfs xnu part_bsd part_gpt search search_fs_file \
+  chain btrfs loadbios loadenv lvm minix minix2 reiserfs memrw mmap msdospart scsi loopback \
+  normal configfile gzio all_video efi_gop efi_uga gfxterm gettext echo boot chain eval
+# file located at ~/boot32/grub/grub-core/bootia32.efi to be copied later
+
+
+# kernel build based on https://help.ubuntu.com/community/LiveCDCustomization
+# -------- host section
+cd ~
+# Install required tools
+apt -y install squashfs-tools genisoimage git
+
+# Extract ISO contents
+mkdir livecdtmp
+cd livecdtmp
+wget http://releases.ubuntu.com/16.04.2/ubuntu-16.04.2-desktop-amd64.iso
+mkdir isomnt
+mount -o loop ubuntu-16.04.2-desktop-amd64.iso isomnt
+mkdir extract-cd
+rsync --exclude=/casper/filesystem.squashfs -a isomnt/ extract-cd
+unsquashfs isomnt/casper/filesystem.squashfs
+mv squashfs-root edit
+umount isomnt
+
+# save files to be restored at cleanup
+cp -a edit/etc/hosts edit/etc/hosts.orig
+cp -a edit/root edit/root.orig
+cp -a edit/tmp edit/tmp.orig
+
+# Setup chroot environment
+mount --bind /run/ edit/run
+mount --bind /dev/ edit/dev
+cp /etc/hosts edit/etc/
+
+# -------- in chroot section
+
+chroot edit
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devpts none /dev/pts
+
+export HOME=/root
+export LC_ALL=C
+
+apt -y purge linux-image-4.8.0-36-generic
+apt -y autoremove
+
+# required packages to build kernel while in chroot
 apt -y install build-essential libncurses-dev libssl-dev
 
-# will take some time
-git clone https://github.com/torvalds/linux.git
-git checkout v4.10
+# Download v4.10 release of linux kernel
+cd /tmp
+wget https://github.com/torvalds/linux/archive/v4.10.tar.gz
+tar xzvf v4.10.tar.gz
+rm v4.10.tar.gz
+cd linux-4.10
 
 # create .config file
 make menuconfig -> Save -> '.config' -> Exit
 
-# -j4 for quad core
+# build kernel
 make -j4
+
+# build loadable kernel modules
+make -j4 modules
+
+# install modules
+make modules_install
+
+# install kernel
+make install
+
+# setup initrd.img, vmlinuz, and grub
+ln -vs /boot/initrd.img-4.10.0 /initrd.img
+ln -vs /boot/vmlinuz-4.10.0 /vmlinuz
+update-grub
+
+# clean setup and end chroot
+apt -y remove --auto-remove build-essential libncurses-dev libssl-dev
+umount /proc
+umount /sys
+umount /dev/pts
+exit
+umount edit/run
+umount edit/dev
+mv edit/etc/hosts.orig edit/etc/hosts
+rm -fr edit/root
+mv edit/root.orig  edit/root
+rm -fr edit/tmp
+mv edit/tmp.orig edit/tmp
+
+# create CD image
+chmod +w extract-cd/casper/filesystem.manifest
+chroot edit dpkg-query -W --showformat='${Package} ${Version}\n' > extract-cd/casper/filesystem.manifest
+cp extract-cd/casper/filesystem.manifest extract-cd/casper/filesystem.manifest-desktop
+sed -i '/ubiquity/d' extract-cd/casper/filesystem.manifest-desktop
+sed -i '/casper/d' extract-cd/casper/filesystem.manifest-desktop
+cp ~/boot32/grub/grub-core/bootia32.efi extract-cd/EFI/BOOT/
+rm extract-cd/casper/filesystem.squashfs
+mksquashfs edit extract-cd/casper/filesystem.squashfs
+printf $(du -sx --block-size=1 edit | cut -f1) > extract-cd/casper/filesystem.size
+# Edit extract-cd/README.diskdefines if wish to change name
+cd extract-cd
+rm md5sum.txt
+find -type f -print0 | xargs -0 md5sum | grep -v isolinux/boot.cat | tee md5sum.txt
+
+mkisofs -D -r -V "$IMAGE_NAME" -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../ubuntu-16.04.2-desktop-amd64-custom.iso .
