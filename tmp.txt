@@ -22,7 +22,7 @@ cd grub-core
 # -------- host section
 cd ~
 # Install required tools
-apt -y install squashfs-tools genisoimage git
+apt -y install squashfs-tools genisoimage
 
 # Extract ISO contents
 mkdir livecdtmp
@@ -56,41 +56,18 @@ mount -t devpts none /dev/pts
 export HOME=/root
 export LC_ALL=C
 
+# download and install packaged kernel - from http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10/
+cd /tmp
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10/linux-headers-4.10.0-041000-generic_4.10.0-041000.201702191831_amd64.deb
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10/linux-headers-4.10.0-041000_4.10.0-041000.201702191831_all.deb
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10/linux-image-4.10.0-041000-generic_4.10.0-041000.201702191831_amd64.deb
+dpkg -i *.deb
+
 apt -y purge linux-image-4.8.0-36-generic
 apt -y autoremove
 
-# required packages to build kernel while in chroot
-apt -y install build-essential libncurses-dev libssl-dev
-
-# Download v4.10 release of linux kernel
-cd /tmp
-wget https://github.com/torvalds/linux/archive/v4.10.tar.gz
-tar xzvf v4.10.tar.gz
-rm v4.10.tar.gz
-cd linux-4.10
-
-# create .config file
-make menuconfig -> Save -> '.config' -> Exit
-
-# build kernel
-make -j4
-
-# build loadable kernel modules
-make -j4 modules
-
-# install modules
-make modules_install
-
-# install kernel
-make install
-
-# setup initrd.img, vmlinuz, and grub
-ln -vs /boot/initrd.img-4.10.0 /initrd.img
-ln -vs /boot/vmlinuz-4.10.0 /vmlinuz
-update-grub
 
 # clean setup and end chroot
-apt -y remove --auto-remove build-essential libncurses-dev libssl-dev
 umount /proc
 umount /sys
 umount /dev/pts
@@ -109,13 +86,33 @@ chroot edit dpkg-query -W --showformat='${Package} ${Version}\n' > extract-cd/ca
 cp extract-cd/casper/filesystem.manifest extract-cd/casper/filesystem.manifest-desktop
 sed -i '/ubiquity/d' extract-cd/casper/filesystem.manifest-desktop
 sed -i '/casper/d' extract-cd/casper/filesystem.manifest-desktop
-cp ~/boot32/grub/grub-core/bootia32.efi extract-cd/EFI/BOOT/
-rm extract-cd/casper/filesystem.squashfs
-mksquashfs edit extract-cd/casper/filesystem.squashfs
-printf $(du -sx --block-size=1 edit | cut -f1) > extract-cd/casper/filesystem.size
-# Edit extract-cd/README.diskdefines if wish to change name
-cd extract-cd
-rm md5sum.txt
-find -type f -print0 | xargs -0 md5sum | grep -v isolinux/boot.cat | tee md5sum.txt
 
-mkisofs -D -r -V "$IMAGE_NAME" -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../ubuntu-16.04.2-desktop-amd64-custom.iso .
+cp ~/boot32/grub/grub-core/bootia32.efi extract-cd/EFI/BOOT/
+mksquashfs edit extract-cd/casper/filesystem.squashfs
+echo $(du -sx --block-size=1 edit | cut -f1) > extract-cd/casper/filesystem.size
+
+# overwrite files livecd files to use new kernel
+# not working
+#cp edit/boot/vmlinuz-4.10.0-041000-generic extract-cd/casper/vmlinuz.efi
+#gunzip --stdout edit/boot/initrd.img-4.10.0-041000-generic | lzma --compress --stdout > extract-cd/casper/initrd.lz
+
+# Edit extract-cd/README.diskdefines if wish to change name
+
+# create ISO
+cd extract-cd
+find -type f -print0 | xargs -0 md5sum | grep -v isolinux/boot.cat > md5sum.txt
+mkisofs -J -l -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -z -iso-level 4 -c isolinux/isolinux.cat -joliet-long -o ../ubuntu-16.04.2-desktop-amd64-custom.iso .
+
+# write to USB
+# Assuming USB flashdrive assigned to /dev/sdb
+# THIS WILL DELETE ALL DATA ON /dev/sdb - make sure you know what you are doing!
+sgdisk --zap-all /dev/sdb
+sgdisk --new=1:0:0 --typecode=1:ef00 /dev/sdb
+mkfs.vfat -F32 /dev/sdb1
+
+# Copy the ISO file to the USB drive:
+mount -t vfat /dev/sdb1 /mnt
+cd ..
+7z x ubuntu-16.04.2-desktop-amd64-custom.iso -o/mnt/
+umount /mnt
+
