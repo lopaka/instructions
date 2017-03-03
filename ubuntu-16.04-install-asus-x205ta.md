@@ -4,7 +4,8 @@ After Ubuntu 16.04.2 updated fresh installs to have Linux kernel 4.8.0, which br
 
 ## Download of ISO
 
-The following ISO was created using the instructions in this document:
+This document was used to create the following ISO:
+
 https://s3.amazonaws.com/x205ta/ubuntu-16.04.2-desktop-amd64-asus-x205ta-4.10-kernel.iso
 
 ## Required items to build the ISO
