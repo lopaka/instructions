@@ -1,31 +1,25 @@
-# Instructions to install Ubuntu 16.04 LTS on ASUS EeeBook X205TA
+# Instructions to create Ubuntu 16.04 LTS install media for ASUS EeeBook X205TA
 
-**_ALERT: 16.04.2 installs linux kernel 4.8.0 which breaks a few things like the keyboard. Currently working on a fix_**
+After Ubuntu 16.04.2 updated fresh installs to have Linux kernel 4.8.0, which broke several things such as the keyboard, and many asking if I can just provide an ISO for the X205TA, I have changed this doc to give instructions on how to create an ISO with X205TA changes and Linux kernel 4.10. I also provided the resulting ISO. I provided the instructions on how to build the ISO from trusted sources because it can be dangerous running code from someone you don't know.
 
-## Required items
-* Separate system already running Ubuntu 16.04 - this is where you will build the 32bit boot loader and create the USB install flash drive.
+## Download of ISO
+
+The following ISO was created using the instructions in this document:
+https://s3.amazonaws.com/x205ta/ubuntu-16.04.2-desktop-amd64-asus-x205ta-4.10-kernel.iso
+
+## Required items to build the ISO
+
+* Separate system already running Ubuntu 16.04 - this is where you will build the 32bit boot loader, create the LiveCD/ISO, and create the USB install flash drive.
 * Bootable USB flash drive at least 2GB - ALL DATA WILL BE REMOVED FROM THIS DRIVE!
 
-## Prepare the USB flashdrive to be used as the install media
-**THIS WILL DELETE DATA ON /dev/sdb - MAKE SURE YOU KNOW WHAT YOU ARE DOING!**
+## Instructions to create the LiveCD
 
-On a separate system already running Ubuntu 16.04 and powered on, plug in the USB flash drive. Run the following to setup the install media:
+All of these commands were executed as root - I use `sudo -i`.
+
 ```bash
-apt -y install p7zip-full
-
-wget http://releases.ubuntu.com/16.04.2/ubuntu-16.04.2-desktop-amd64.iso
-
-# Assuming USB flashdrive assigned to /dev/sdb
-# THIS WILL DELETE ALL DATA ON /dev/sdb - make sure you know what you are doing!
-sgdisk --zap-all /dev/sdb
-sgdisk --new=1:0:0 --typecode=1:ef00 /dev/sdb
-mkfs.vfat -F32 /dev/sdb1
-
-# Copy the ISO file to the USB drive:
-mount -t vfat /dev/sdb1 /mnt
-7z x ubuntu-16.04.2-desktop-amd64.iso -o/mnt/
-
-# Create the 32bit boot loader and place it on USB install media
+### Create the 32bit EFI boot loader
+mkdir ~/boot32
+cd ~/boot32
 apt -y install git bison libopts25 libselinux1-dev autogen \
   m4 autoconf help2man libopts25-dev flex libfont-freetype-perl \
   automake autotools-dev libfreetype6-dev texinfo
@@ -40,8 +34,113 @@ cd grub-core
   memdisk minicmd part_apple ext2 extcmd xfs xnu part_bsd part_gpt search search_fs_file \
   chain btrfs loadbios loadenv lvm minix minix2 reiserfs memrw mmap msdospart scsi loopback \
   normal configfile gzio all_video efi_gop efi_uga gfxterm gettext echo boot chain eval
-cp bootia32.efi /mnt/EFI/BOOT/
+# Store bootia32.efi in home dir to be copied later
+mv ~/boot32/grub/grub-core/bootia32.efi ~
 
+### Customize the LiveCD - based on https://help.ubuntu.com/community/LiveCDCustomization
+# Install required tools
+apt -y install squashfs-tools genisoimage
+
+# Obtain 16.04.2 Desktop 64-bit ISO and extract content to work with
+mkdir ~/livecdwip
+cd ~/livecdwip
+wget http://releases.ubuntu.com/16.04.2/ubuntu-16.04.2-desktop-amd64.iso
+mkdir isomnt
+mount -o loop ubuntu-16.04.2-desktop-amd64.iso isomnt
+mkdir livecd
+rsync --exclude=/casper/filesystem.squashfs -a isomnt/ livecd
+unsquashfs isomnt/casper/filesystem.squashfs
+mv squashfs-root systemroot
+rmdir isomnt
+
+# Backup specific files and dirs to be restored at cleanup
+cp -a systemroot/etc/hosts systemroot/etc/hosts.orig
+cp -a systemroot/root systemroot/root.orig
+cp -a systemroot/tmp systemroot/tmp.orig
+
+# Setup chroot environment
+mount --bind /run/ systemroot/run
+mount --bind /dev/ systemroot/dev
+cp /etc/hosts systemroot/etc/
+
+# chroot - change root to become systemroot
+chroot systemroot
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devpts none /dev/pts
+export HOME=/root
+export LC_ALL=C
+
+# chroot - download and install packaged kernel 4.10 - from http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10/
+cd /tmp
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10/linux-headers-4.10.0-041000-generic_4.10.0-041000.201702191831_amd64.deb
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10/linux-headers-4.10.0-041000_4.10.0-041000.201702191831_all.deb
+wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.10/linux-image-4.10.0-041000-generic_4.10.0-041000.201702191831_amd64.deb
+dpkg -i *.deb
+
+# chroot - remove previous kernel resources
+apt -y purge linux-image-4.8.0-36-generic
+apt -y purge linux-headers-4.8.0-36-generic
+apt -y purge linux-headers-4.8.0-36
+apt -y autoremove
+
+# clean, exit chroot, and restore previously backed up files/dir
+umount /proc
+umount /sys
+umount /dev/pts
+exit
+umount systemroot/run
+umount systemroot/dev
+mv systemroot/etc/hosts.orig systemroot/etc/hosts
+rm -fr systemroot/root
+mv systemroot/root.orig  systemroot/root
+rm -fr systemroot/tmp
+mv systemroot/tmp.orig systemroot/tmp
+
+# install Broadcom 43340 wireless adapter config file
+# file is available on a running x205ta system in /sys/firmware/efi/efivars/nvram-74b00bd9-805a-4d61-b51f-43268123d113
+wget http://lopaka.github.io/files/instructions/brcmfmac43340-sdio.txt -O systemroot/lib/firmware/brcm/brcmfmac43340-sdio.txt
+
+# Prep for ISO creation
+chmod +w livecd/casper/filesystem.manifest
+chroot systemroot dpkg-query -W --showformat='${Package} ${Version}\n' > livecd/casper/filesystem.manifest
+cp livecd/casper/filesystem.manifest livecd/casper/filesystem.manifest-desktop
+sed -i '/ubiquity/d' livecd/casper/filesystem.manifest-desktop
+sed -i '/casper/d' livecd/casper/filesystem.manifest-desktop
+# Move the bootia32.efi file previously created
+mv ~/bootia32.efi livecd/EFI/BOOT/
+mksquashfs systemroot livecd/casper/filesystem.squashfs
+echo $(du -sx --block-size=1 systemroot | cut -f1) > livecd/casper/filesystem.size
+# Overwrite livecd files to use new kernel and wireless adapter
+cp systemroot/boot/vmlinuz-4.10.0-041000-generic livecd/casper/vmlinuz.efi
+mkdir initrd
+cd initrd
+lzma -dc -S .lz ../livecd/casper/initrd.lz | cpio -imvd --no-absolute-filenames
+rm -fr lib/modules/4.8.0-36-generic
+cp -a ../systemroot/lib/modules/4.10.0-041000-generic lib/modules/
+rm -fr lib/firmware/4.8.0-36-generic
+cp -a ../systemroot/lib/firmware/4.10.0-041000-generic lib/firmware/
+mkdir -p lib/firmware/brcm
+cp -a ../systemroot/lib/firmware/brcm/brcmfmac43340-sdio* lib/firmware/brcm/
+find . | cpio --quiet --dereference -o -H newc | lzma -7 > ../livecd/casper/initrd.lz
+cd ..
+
+# Edit livecd/README.diskdefines at this point if you wish to change name
+
+# Create ISO
+cd livecd
+find -type f -print0 | xargs -0 md5sum | grep -v isolinux/boot.cat > md5sum.txt
+mkisofs -J -l -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -z -iso-level 4 -c isolinux/isolinux.cat -joliet-long -o ../ubuntu-16.04.2-desktop-amd64-asus-x205ta-4.10-kernel.iso .
+cd ..
+
+# Write ISO to USB
+# Assuming USB flashdrive assigned to /dev/sdb
+# THIS WILL DELETE ALL DATA ON /dev/sdb - make sure you know what you are doing!
+sgdisk --zap-all /dev/sdb
+sgdisk --new=1:0:0 --typecode=1:ef00 /dev/sdb
+mkfs.vfat -F32 /dev/sdb1
+mount -t vfat /dev/sdb1 /mnt
+7z x ubuntu-16.04.2-desktop-amd64-asus-x205ta-4.10-kernel.iso -o/mnt/
 umount /mnt
 ```
 Remove the USB flash drive.
@@ -60,50 +159,9 @@ Remove the USB flash drive.
 
 ### Installation
 
-1. At the grub menu, select "Try Ubuntu without installing" (misleading because you will be installing). This is needed to get a shell to setup the wireless device. Network access is required for installation to remotely obtain the `grub-efi-ia32-bin` package.  Without this package, install will fail.
-2. Once the desktop loads, press "ctrl+alt+t" to get a terminal window.
-3. Type the following to setup the wireless network device:
-
-   ```bash
-   sudo cp /sys/firmware/efi/efivars/nvram-74b00bd9-805a-4d61-b51f-43268123d113 /lib/firmware/brcm/brcmfmac43340-sdio.txt
-   sudo modprobe -v -r brcmfmac
-   sudo modprobe -v brcmfmac
-   ```
-
-4. The wireless network device should now be working. Press alt+F10 (or click on the wireless/network icon on the indicator panel) to configure using your wireless network setup.
-5. Double click on the Desktop icon labeled "Install Ubuntu 16.04 LTS" to start the installation process and install as usual.
+Install as normal
 
 *Note: Selecting `Encrypt the new Ubuntu installation for security` will require you to enter a password on boot - the keyboard will not work for this requiring you to use an external USB keyboard. You have been warned.*
-
-### Post-installation
-
-* Due to a known system freeze issue, update `/etc/default/grub` by updating the `GRUB_CMDLINE_LINUX_DEFAULT` line to:
-
-  ```
-  GRUB_CMDLINE_LINUX_DEFAULT="quiet splash intel_idle.max_cstate=1"
-  ```
-
-  Then run `update-grub`.
-* We will need to copy a file as we did during installation to get wifi working:
-
-  ```bash
-  sudo cp /sys/firmware/efi/efivars/nvram-74b00bd9-805a-4d61-b51f-43268123d113 /lib/firmware/brcm/brcmfmac43340-sdio.txt
-  sudo modprobe -v -r brcmfmac
-  sudo modprobe -v brcmfmac
-  ```
-
-  Then configure your wireless settings.
-
-* Stop login freezes caused by generic bluetooth driver btsdio:  
-
-  Many have reported a high frequency of system freezes at the login screen. It was found that if one were to blacklist the btsdio generic bluetooth driver, the login freezes stop.  Add the following to `/etc/modprobe.d/blacklist.conf`:
-
-  ```
-  # generic bluetooth SDIO driver
-  blacklist btsdio
-  ```
-
-  Subsequent login instances should no longer freeze.
 
 ## Bluetooth setup
 
@@ -147,8 +205,7 @@ The following steps must be done on the x205ta after installation to provide *ex
 
 ```bash
 # Required lib and packages not installed by default
-apt -y install git
-apt -y install libssl-dev
+apt -y install git libssl-dev
 
 # Retrieve the Linux kernel source tree fork - will take some time
 git clone https://github.com/plbossart/sound.git -b experimental/codecs
