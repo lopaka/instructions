@@ -81,7 +81,7 @@ rm -fr edit/tmp
 mv edit/tmp.orig edit/tmp
 
 # install Broadcom 43340 config file
-# on a running x205ta system, file obtained from /sys/firmware/efi/efivars/nvram-74b00bd9-805a-4d61-b51f-43268123d113
+# file obtained on running x205ta system from /sys/firmware/efi/efivars/nvram-74b00bd9-805a-4d61-b51f-43268123d113
 wget http://lopaka.github.io/files/instructions/brcmfmac43340-sdio.txt -O edit/lib/firmware/brcm/brcmfmac43340-sdio.txt
 
 # create CD image
@@ -95,13 +95,15 @@ cp ~/boot32/grub/grub-core/bootia32.efi extract-cd/EFI/BOOT/
 mksquashfs edit extract-cd/casper/filesystem.squashfs
 echo $(du -sx --block-size=1 edit | cut -f1) > extract-cd/casper/filesystem.size
 
-# overwrite livecd files to use new kernel
+# overwrite livecd files to use new kernel and configure wireless
 cp edit/boot/vmlinuz-4.10.0-041000-generic extract-cd/casper/vmlinuz.efi
 mkdir initrd
 cd initrd
 lzma -dc -S .lz ../extract-cd/casper/initrd.lz | cpio -imvd --no-absolute-filenames
 rm -fr lib/modules/4.8.0-36-generic
 cp -a ../edit/lib/modules/4.10.0-041000-generic lib/modules/
+mkdir -p lib/firmware/brcm
+cp -a ../edit/lib/firmware/brcm/brcmfmac43340-sdio* lib/firmware/brcm/
 find . | cpio --quiet --dereference -o -H newc | lzma -7 > ../extract-cd/casper/initrd.lz
 cd ..
 
