@@ -102,6 +102,8 @@ cd initrd
 lzma -dc -S .lz ../extract-cd/casper/initrd.lz | cpio -imvd --no-absolute-filenames
 rm -fr lib/modules/4.8.0-36-generic
 cp -a ../edit/lib/modules/4.10.0-041000-generic lib/modules/
+rm -fr lib/firmware/4.8.0-36-generic
+cp -a ../edit/lib/firmware/4.10.0-041000-generic lib/firmware/
 mkdir -p lib/firmware/brcm
 cp -a ../edit/lib/firmware/brcm/brcmfmac43340-sdio* lib/firmware/brcm/
 find . | cpio --quiet --dereference -o -H newc | lzma -7 > ../extract-cd/casper/initrd.lz
