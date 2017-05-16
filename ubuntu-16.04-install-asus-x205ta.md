@@ -259,3 +259,7 @@ apt -y install pulseaudio alsa-base alsa-utils pavucontrol
 # Reboot and use GUI to set default output - Sound Settings...
 shutdown -r now
 ```
+
+## CLEAN install of Windows 10
+
+If you wish to do a CLEAN install of Windows 10, please follow [these instructions](windows10-install-asus-x205ta.md)
