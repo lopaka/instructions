@@ -1,16 +1,16 @@
-# Instructions to CLEAN install Windows 10 version 1703 (aka Creators Update) (1703) on ASUS EeeBook X205TA
+# Instructions to CLEAN install Windows 10 version 1703 (aka Creators Update) on ASUS EeeBook X205TA
 
 ## Required items
 
 * A working system to download software and create install media
 * Bootable USB flash drive at least 8GB (ALL DATA WILL BE REMOVED FROM THIS DRIVE!) or a USB DVD-ROM and DVD-R media
-* USB keyboard (or keyboard/mouse combo) - Windows 10 install media does not have the drivers for keyboard or trackpad
+* USB keyboard (or keyboard/mouse combo) - Windows 10 install media does not have the drivers for the keyboard and trackpad on the X205TA
 
 ## Obtain and create install media
 
-Go to https://www.microsoft.com/software-download/windows10 to either:
-
 **NOTICE: THE X205TA only supports 32-bit Windows 10! It will not allow you to install 64-bit**
+
+Go to https://www.microsoft.com/software-download/windows10 to either:
 
 * Download and use the media creation tool to create a bootable USB install drive
 
