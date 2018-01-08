@@ -25,9 +25,11 @@ mkdir ~/boot32
 cd ~/boot32
 apt -y install git bison libopts25 libselinux1-dev autogen \
   m4 autoconf help2man libopts25-dev flex libfont-freetype-perl \
-  automake autotools-dev libfreetype6-dev texinfo
+  automake autotools-dev libfreetype6-dev texinfo python make libdevmapper \
+  build-essential
 git clone git://git.savannah.gnu.org/grub.git
 cd grub
+git checkout b4d709b6ee789cdaf3fa7a80fd90c721a16f48c2
 ./autogen.sh
 ./configure --with-platform=efi --target=i386 --program-prefix=''
 make
@@ -139,6 +141,7 @@ cd ..
 # Write ISO to USB
 # Assuming USB flashdrive assigned to /dev/sdb
 # THIS WILL DELETE ALL DATA ON /dev/sdb - make sure you know what you are doing!
+apt -y install p7zip-full
 sgdisk --zap-all /dev/sdb
 sgdisk --new=1:0:0 --typecode=1:ef00 /dev/sdb
 mkfs.vfat -F32 /dev/sdb1
