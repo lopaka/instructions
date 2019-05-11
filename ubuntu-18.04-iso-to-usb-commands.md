@@ -34,5 +34,5 @@
 
 4. Run `sync` to make sure all data written to USB before removing it
    ```
-   sync
+   sudo sync
    ```
