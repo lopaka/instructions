@@ -11,8 +11,9 @@
 ## Requirements
 * "Backend" system
   * Ubuntu 22.04 Server installed
-  * Wake-on-LAN (WOL) enabled - usually via BIOS
-  * Plex Media SErver installed
+  * Wake-on-LAN (WoL) enabled in BIOS
+  * Wake-on-LAN (WoL) enabled in NIC (see [docs](https://help.ubuntu.com/community/WakeOnLan#Enabling_WoL_in_the_NIC))
+  * Plex Media Server installed
 * "Frontend" system
   * Ubuntu 22.04 Server installed
   * Low power consumption
